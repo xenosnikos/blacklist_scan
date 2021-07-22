@@ -15,7 +15,7 @@ Authorization: Needed
 
 request_args = reqparse.RequestParser()
 
-request_args.add_argument(common_strings.strings['key_value'], help=common_strings.strings['domain_required'],
+request_args.add_argument(common_strings.strings['key_value'], help=common_strings.strings['domain_or_ip_required'],
                           required=True)
 request_args.add_argument(common_strings.strings['input_force'], type=inputs.boolean, default=False)
 
@@ -40,10 +40,10 @@ class BlacklistScan(Resource):
             logger.debug(f"Unauthenticated blacklist scan request received for {value}")
             return authentication, 401
 
-        if not utils.validate_domain(value):  # if regex doesn't match throw a 400
+        if not utils.validate_domain_or_ip(value):  # if regex doesn't match throw a 400
             logger.debug(f"Domain that doesn't match regex request received - {value}")
             return {
-                       common_strings.strings['message']: f"{value}" + common_strings.strings['invalid_domain']
+                       common_strings.strings['message']: f"{value}" + common_strings.strings['invalid_domain_or_ip']
                    }, 400
 
         # if domain doesn't resolve into an IP, throw a 400 as domain doesn't exist in the internet
@@ -94,5 +94,5 @@ class BlacklistScan(Resource):
                     queue_to_db.blacklist_db_addition(value, output)
                     return output, 200
                 except Exception as e:
-                    logger.critical(common_strings.strings['database_issue'], e)
+                    logger.critical(common_strings.strings['database_issue'], exc_info=e)
                     return output, 503
