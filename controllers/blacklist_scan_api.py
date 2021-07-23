@@ -75,7 +75,8 @@ class BlacklistScan(Resource):
             # mark in db that the scan is queued
             utils.mark_db_request(value, status=common_strings.strings['status_queued'],
                                   collection=common_strings.strings['blacklist'])
-            output = {common_strings.strings['key_value']: value, common_strings.strings['key_ip']: ip}
+            output = {common_strings.strings['key_value']: value, common_strings.strings['key_ip']: ip,
+                      common_strings.strings['output_domain']: value if utils.validate_domain(value) else ''}
 
             try:
                 out = blacklist_scan.scan(value, ip)  # the blacklist scan function
@@ -83,10 +84,7 @@ class BlacklistScan(Resource):
             except Exception as e:
                 # remove the record from database so next scan can run through
                 utils.delete_db_record(value, collection=common_strings.strings['blacklist'])
-                output['blacklisted'] = common_strings.strings['error']
-                output['source'] = common_strings.strings['error']
-                logger.error(f'Cannot initialize blacklist library - {e}')
-                logger.error(traceback.format_exc())
+                logger.error('Cannot initialize blacklist library', exc_info=e)
 
             logger.debug(f"blacklist scan response sent for {value} performing a new scan")
             if output['blacklisted'] != common_strings.strings['error']:
@@ -95,4 +93,4 @@ class BlacklistScan(Resource):
                     return output, 200
                 except Exception as e:
                     logger.critical(common_strings.strings['database_issue'], exc_info=e)
-                    return output, 503
+                    return 'Blacklist scan is currently unavailable', 503
