@@ -7,8 +7,8 @@ from helpers.mongo_connection import db
 from helpers import common_strings
 
 
-def validate_domain(domain):
-    if not validators.domain(domain):
+def validate_domain_or_ip(value):
+    if not (validators.domain(value) or validators.ipv4(value)):
         return False
     else:
         return True
@@ -37,9 +37,16 @@ def mark_db_request(value, status, collection):
                                   upsert=True)
     except Exception as e:
         logger = logging.getLogger(collection)
-        logger.critical(common_strings.strings['database_issue'], e)
+        logger.critical(common_strings.strings['database_issue'], exc_info=e)
     return True
 
 def resolve_domain_ip(data_input):
     return socket.gethostbyname(data_input)
+
+def delete_db_record(value, collection):
+    try:
+        db[collection].find_one_and_delete({common_strings.strings['mongo_value']: value})
+    except Exception as e:
+        logger = logging.getLogger(collection)
+        logger.critical(common_strings.strings['database_issue'], exc_info=e)
 
