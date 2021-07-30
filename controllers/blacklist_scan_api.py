@@ -89,6 +89,7 @@ class BlacklistScan(Resource):
             logger.debug(f"blacklist scan response sent for {value} performing a new scan")
             if output['blacklisted'] != common_strings.strings['error']:
                 try:
+                    output['risk'] = 'Fail' if output['blacklisted'] else 'Pass'
                     queue_to_db.blacklist_db_addition(value, output)
                     return output, 200
                 except Exception as e:

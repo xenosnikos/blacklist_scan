@@ -7,6 +7,12 @@ from helpers.mongo_connection import db
 from helpers import common_strings
 
 
+def validate_domain(domain):
+    if not validators.domain(domain):
+        return False
+    else:
+        return True
+
 def validate_domain_or_ip(value):
     if not (validators.domain(value) or validators.ipv4(value)):
         return False
