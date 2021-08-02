@@ -1,5 +1,6 @@
 import os
 import traceback
+from enum import Enum
 
 from flask_restful import Resource, reqparse, request, inputs
 from helpers import auth_check, utils, blacklist_scan, common_strings, logging_setup, queue_to_db
@@ -21,6 +22,9 @@ request_args.add_argument(common_strings.strings['input_force'], type=inputs.boo
 
 logger = logging_setup.initialize(common_strings.strings['blacklist'], 'logs/blacklist_api.log')
 
+class Risk(Enum):
+    FAIL = "FAIL"
+    PASS = "PASS"
 
 class BlacklistScan(Resource):
 
@@ -89,7 +93,7 @@ class BlacklistScan(Resource):
             logger.debug(f"blacklist scan response sent for {value} performing a new scan")
             if output['blacklisted'] != common_strings.strings['error']:
                 try:
-                    output['risk'] = 'Fail' if output['blacklisted'] else 'Pass'
+                    output['risk'] = Risk.FAIL.name if output['blacklisted'] else Risk.PASS.name
                     queue_to_db.blacklist_db_addition(value, output)
                     return output, 200
                 except Exception as e:
