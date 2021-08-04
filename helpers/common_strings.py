@@ -14,4 +14,5 @@ strings = {
     'input_force': 'force',
     'error': 'error',
     'message': 'message',
+    'output_domain': 'domain'
 }
